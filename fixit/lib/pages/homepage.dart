@@ -8,107 +8,232 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+  int _topSelectedIndex = -1;  // Separate state for top nav
+  int _bottomSelectedIndex = -1;  // Separate state for bottom nav
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF090A0E),
-      body: Center(
-        child: Text(
-          'Home Page',
-          style: TextStyle(color: Colors.white),
-        ),
-      ),
-      bottomNavigationBar: Stack(
-        clipBehavior: Clip.none, // Allow overflow of the circle above the nav bar
+      body: Stack(
         children: [
+          // Main content of the body
+          Center(
+            child: Text(
+              'Home Page',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          // Profile circle on the top left
           Positioned(
-            bottom: 50, // Added space to move the nav bar up slightly
-            left: 0,
-            right: 0,
+            top: 60, // Adjust the vertical position
+            left: 20, // Adjust the horizontal position
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.7, // Adjust the width of the nav bar (70% of screen width)
-              height: 65, // Adjust the height of the nav bar
+              width: 50,
+              height: 50,
               decoration: BoxDecoration(
-                color: Colors.green, // Background color of the nav bar
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40), // Increased border radius for a more rounded effect
-                  topRight: Radius.circular(40), // Increased border radius for a more rounded effect
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 40,
-                    offset: Offset(0, 5), // Adjust shadow position
-                  ),
-                ],
-              ),
-              child: BottomNavigationBar(
-                backgroundColor: Colors.transparent, // Make the background of the nav bar transparent
-                selectedItemColor: Colors.blue,
-                unselectedItemColor: const Color.fromARGB(255, 0, 0, 0),
-                currentIndex: _selectedIndex,
-                onTap: _onItemTapped,
-                items: [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home, size: 25), // Icon size without background
-                    label: 'Home',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.search, size: 25), // Icon size without background
-                    label: 'Search',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: SizedBox.shrink(), // Empty space for the middle icon
-                    label: '',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.favorite, size: 25), // Icon size without background
-                    label: 'Favorites',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.account_circle, size: 25), // Icon size without background
-                    label: 'Profile',
-                  ),
-                ],
-                showSelectedLabels: true, // Show the labels
-                showUnselectedLabels: true, // Show unselected labels
-                selectedLabelStyle: TextStyle(
-                  fontSize: 10, // Adjust font size for selected label
-                  fontWeight: FontWeight.bold, // Optional: Make selected label bold
-                ),
-                unselectedLabelStyle: TextStyle(
-                  fontSize: 14, // Adjust font size for unselected label
+                color: Colors.grey[800], // Default color if no image
+                shape: BoxShape.circle,
+                image: DecorationImage(
+                  image: NetworkImage('https://example.com/your-profile-image.jpg'), // Replace with your profile image URL
+                  fit: BoxFit.cover,
                 ),
               ),
             ),
           ),
+          // Burger menu icon on the top right
           Positioned(
-            left: MediaQuery.of(context).size.width / 2 - 50, // Center the circle
-            bottom: 35, // Adjust to ensure the circle stays in front of the nav bar
-            child: CircleAvatar(
-              radius: 50, // Larger circle size
-              backgroundColor: Colors.blue, // Circle color
+            top: 60, // Adjust the vertical position
+            right: 20, // Adjust the horizontal position
+            child: IconButton(
+              icon: Icon(
+                Icons.menu, // Burger menu icon
+                color: Color(0xFF959EB9),
+                size: 30,
+              ),
+              onPressed: () {
+                // Action for the burger menu icon
+                print("Burger menu pressed");
+              },
+            ),
+          ),
+          // Navigation bar below the profile and burger menu with buttons and a bottom border
+          Positioned(
+            top: 120, // Position below the profile and menu
+            left: 20,
+            right: 20,
+            child: Container(
+              width: MediaQuery.of(context).size.width * 1.0,
+              height: 100, // Increased height to accommodate the buttons and border
+              color: const Color(0xFF090A0E), // Set background color
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildTopNavBarItem('You', 0),
+                      _buildTopNavBarItem('Following', 1),
+                      _buildTopNavBarItem('Discussions', 2),
+                      _buildTopNavBarItem('Tags', 3),
+                    ],
+                  ),
+                  Divider(
+                    color: Color(0xFF959EB9), // Border color at the bottom
+                    thickness: 1, // Border thickness
+                    indent: 0, // No indentation from the left side
+                    endIndent: 0, // No indentation from the right side
+                  ),
+                ],
+              ),
+            ),
+          ),
+        
+          Positioned(
+            bottom: 20, 
+            left: MediaQuery.of(context).size.width * 0.02, 
+            right: MediaQuery.of(context).size.width * 0.02, 
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.85, 
+              height: 70, 
+              decoration: BoxDecoration(
+                color: Color(0xFF010409), 
+                borderRadius: BorderRadius.circular(40), 
+                border: Border.all(
+                  color: Color(0xFF959EB9), 
+                  width: 1, 
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.home,
+                      color: _bottomSelectedIndex == 0 ? Colors.white : Color(0xFF959EB9),
+                      size: 45,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _bottomSelectedIndex = 0;
+                      });
+                      print("Home icon pressed");
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.search,
+                      color: _bottomSelectedIndex == 1 ? Colors.white : Color(0xFF959EB9),
+                      size: 45,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _bottomSelectedIndex = 1;
+                      });
+                      print("Search icon pressed");
+                    },
+                  ),
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: const Color.fromARGB(255, 0, 0, 0),
+                      borderRadius: BorderRadius.circular(35),
+                      border: Border.all(
+                        color: Color(0xFF959EB9),
+                        width: 2,
+                      ),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                        size: 45,
+                      ),
+                      onPressed: () {
+                        print("Middle icon pressed");
+                      },
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.notifications,
+                      color: _bottomSelectedIndex == 2 ? Colors.white : Color(0xFF959EB9),
+                      size: 45,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _bottomSelectedIndex = 2;
+                      });
+                      print("Bell icon pressed");
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      Icons.people,
+                      color: _bottomSelectedIndex == 3 ? Colors.white : Color(0xFF959EB9),
+                      size: 45,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _bottomSelectedIndex = 3;
+                      });
+                      print("People icon pressed");
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            left: MediaQuery.of(context).size.width / 2 - 50,
+            bottom: 10,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color.fromARGB(255, 0, 0, 0),
+                borderRadius: BorderRadius.circular(35),
+                border: Border.all(
+                  color: Color(0xFF959EB9),
+                  width: 3, 
+                ),
+              ),
               child: IconButton(
                 icon: const Icon(
                   Icons.add,
                   color: Colors.white,
-                  size: 35, // Icon size
+                  size: 45, 
                 ),
                 onPressed: () {
-                  // Action for the middle icon
                   print("Middle icon pressed");
                 },
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTopNavBarItem(String label, int index) {
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _topSelectedIndex = index;
+        });
+        print("$label button pressed");
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: _topSelectedIndex == index ? Colors.white : Color(0xFF959EB9),
+              fontSize: 14,
+            ),
+          ),
+          SizedBox(height: 5),
         ],
       ),
     );
