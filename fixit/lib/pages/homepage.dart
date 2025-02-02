@@ -1,3 +1,5 @@
+import 'package:fixit/pages/NewpostPage.dart';
+import 'package:fixit/pages/ShareLinkPage.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -150,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                         size: 45,
                       ),
                       onPressed: () {
-                        print("Middle icon pressed");
+                        _showBottomSheet(context); // Show bottom sheet when the icon is pressed
                       },
                     ),
                   ),
@@ -205,13 +207,62 @@ class _HomePageState extends State<HomePage> {
                   size: 45, 
                 ),
                 onPressed: () {
-                  print("Middle icon pressed");
+                  _showBottomSheet(context); // Show bottom sheet when the icon is pressed
                 },
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // Function to show the bottom sheet
+  void _showBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to New Post page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => NewPostPage()), // Replace with your New Post page
+                      );
+                    },
+                    child: Text('New Post'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Navigate to Share a Link page
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => ShareLinkPage()), // Replace with your Share Link page
+                      );
+                    },
+                    child: Text('Share a Link'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context); // Close the bottom sheet
+                },
+                child: Text('Close'),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

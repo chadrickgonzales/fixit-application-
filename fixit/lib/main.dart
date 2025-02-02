@@ -8,11 +8,11 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: const FirebaseOptions(
-      apiKey: "AIzaSyBEE6ikLIwJFxqwpqUTTfawsXXVIDosMak",
-      appId: "1:227454389599:android:f8e2160d8f90aadf213aea",
-      messagingSenderId: "227454389599",
-      projectId: "fixit-6a7a1",
-      storageBucket: "fixit-6a7a1.appspot.com",
+      apiKey: "AIzaSyBrgKOubqCnnkTnotw99yIxSXltmu5NqYo",
+      appId: "1:69614301418:android:aeb1950c9007a71df46793",
+      messagingSenderId: "69614301418",
+      projectId: "outopiadatabase",
+      storageBucket: "outopiadatabase.appspot.com",
     ),
   );
 
