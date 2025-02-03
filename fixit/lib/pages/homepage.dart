@@ -12,8 +12,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _topSelectedIndex = -1;  // Separate state for top nav
-  int _bottomSelectedIndex = -1;  // Separate state for bottom nav
+  int _topSelectedIndex = 0;
+  int _bottomSelectedIndex = -1;
 
   @override
   Widget build(BuildContext context) {
@@ -21,38 +21,38 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFF090A0E),
       body: Stack(
         children: [
-          // Main content of the body
+ 
           Positioned.fill(
             child: Column(
               children: [
                 SizedBox(height: 161),
-                // Your top content here (for example, title, etc.)
+
                 _buildContent(),
 
-                // Add padding or spacing below the scrollable content
-                SizedBox(height: 90),  // Adjust the height here if needed
+
+                SizedBox(height: 70), 
               ],
             ),
           ),
 
-          // Profile picture positioned in front
+ 
           Positioned(
-            top: 60,  // Adjust top position for the profile picture
-            left: 20,  // Adjust left position for the profile picture
+            top: 60,  
+            left: 20,  
             child: CircleAvatar(
               radius: 30,
-              backgroundImage: AssetImage('assets/profile_picture.jpg'), // Replace with your asset image or network image
+              backgroundImage: AssetImage('assets/profile_picture.jpg'), 
             ),
           ),
           
-          // Navigation bar below the profile and burger menu with buttons and a bottom border
+
           Positioned(
-            top: 140, // Position below the profile and menu
-            left: 0, // Set left to 0 to take full width
-            right: 0, // Set right to 0 to take full width
+            top: 140, 
+            left: 0, 
+            right: 0, 
             child: Container(
-              height: 50, // Increased height to accommodate the buttons and border
-              color: const Color(0xFF090A0E), // Set background color
+              height: 50, 
+              color: const Color(0xFF090A0E), 
               child: Column(
                 children: [
                   Row(
@@ -65,17 +65,17 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   Divider(
-                    color: Color.fromARGB(57, 149, 158, 185), // Border color at the bottom
-                    thickness: 1, // Border thickness
-                    indent: 0, // No indentation from the left side
-                    endIndent: 0, // No indentation from the right side
+                    color: Color.fromARGB(57, 149, 158, 185), 
+                    thickness: 1, 
+                    indent: 0, 
+                    endIndent: 0, 
                   ),
                 ],
               ),
             ),
           ),
           
-          // Bottom navigation bar
+
           Positioned(
             bottom: 20, 
             left: MediaQuery.of(context).size.width * 0.02, 
@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                         size: 45,
                       ),
                       onPressed: () {
-                        _showBottomSheet(context); // Show bottom sheet when the icon is pressed
+                        _showBottomSheet(context); 
                       },
                     ),
                   ),
@@ -194,20 +194,17 @@ class _HomePageState extends State<HomePage> {
                   size: 45, 
                 ),
                 onPressed: () {
-                  _showBottomSheet(context); // Show bottom sheet when the icon is pressed
+                  _showBottomSheet(context); 
                 },
               ),
             ),
           ),
-
-          // Share button and 3-button menu positioned in the top right
-         
         ],
       ),
     );
   }
 
-  // Function to show the bottom sheet
+
   void _showBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -222,20 +219,18 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to New Post page
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => NewPostPage()), // Replace with your New Post page
+                        MaterialPageRoute(builder: (context) => NewPostPage()),
                       );
                     },
                     child: Text('New Post'),
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      // Navigate to Share a Link page
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => ShareLinkPage()), // Replace with your Share Link page
+                        MaterialPageRoute(builder: (context) => ShareLinkPage()),
                       );
                     },
                     child: Text('Share a Link'),
@@ -245,7 +240,7 @@ class _HomePageState extends State<HomePage> {
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context); // Close the bottom sheet
+                  Navigator.pop(context); 
                 },
                 child: Text('Close'),
               ),
@@ -256,7 +251,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Function for top navigation bar items
   Widget _buildTopNavBarItem(String label, int index) {
     return GestureDetector(
       onTap: () {
@@ -281,20 +275,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Function to build content based on selected top navigation item
   Widget _buildContent() {
     Color containerColor;
     String contentText;
 
     switch (_topSelectedIndex) {
       case 0:
-        containerColor = Color(0xFF090A0E); // Color when 'You' is selected
+        containerColor = Color(0xFF090A0E); 
         contentText = 'You Page';
        return Expanded(
   child: SingleChildScrollView(
     child: Column(
       children: [
-        // Fetch posts from Firestore
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance.collection('posts').snapshots(),
           builder: (context, snapshot) {
@@ -313,12 +305,11 @@ class _HomePageState extends State<HomePage> {
                 var title = post['title'];
                 var imageUrl = post['imageUrl'];
 
-                // Example numbers for upvote, downvote, and comments (can be dynamic)
+
                 int upvotes = 120;
                 int downvotes = 35;
                 int comments = 15;
 
-                // Example: Let's switch color schemes for demonstration
                
 
                 return Container(
@@ -329,13 +320,12 @@ class _HomePageState extends State<HomePage> {
                     color: Color(0xFF090A0E),
                     borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                      color:Color.fromARGB(57, 149, 158, 185), // Set your desired border color here
-                      width: 1, // Optional: Set the width of the border
+                      color:Color.fromARGB(57, 149, 158, 185), 
+                      width: 1, 
     )                 ,
                   ),
                   child: Stack(
                     children: [
-                      // Content of the post
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -352,66 +342,54 @@ class _HomePageState extends State<HomePage> {
                             height: 200,
                             fit: BoxFit.cover,
                           ),
-                          // Icons Row for upvote, downvote, comment, bookmark, and clipboard
                           SizedBox(height: 8),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              // Upvote icon with number
                               Row(
                                 children: [
                                   IconButton(
                                     icon: Icon(Icons.arrow_upward, color: Color(0xFF959EB9)),
                                     onPressed: () {
-                                      // Upvote functionality
                                     },
                                   ),
                                   Text('$upvotes', style: TextStyle(color: Color(0xFF959EB9))),
                                 ],
                               ),
-                              // Downvote icon with number
                               Row(
                                 children: [
                                   IconButton(
                                     icon: Icon(Icons.arrow_downward, color: Color(0xFF959EB9)),
                                     onPressed: () {
-                                      // Downvote functionality
                                     },
                                   ),
                                   Text('$downvotes', style: TextStyle(color: Color(0xFF959EB9))),
                                 ],
                               ),
-                              // Comment icon with number
                               Row(
                                 children: [
                                   IconButton(
                                     icon: Icon(Icons.comment, color: Color(0xFF959EB9)),
                                     onPressed: () {
-                                      // Comment functionality
                                     },
                                   ),
                                   Text('$comments', style: TextStyle(color: Color(0xFF959EB9))),
                                 ],
                               ),
-                              // Bookmark icon
                               IconButton(
                                 icon: Icon(Icons.bookmark, color:Color(0xFF959EB9)),
                                 onPressed: () {
-                                  // Bookmark functionality
                                 },
                               ),
-                              // Clipboard icon
                               IconButton(
                                 icon: Icon(Icons.content_copy, color:Color(0xFF959EB9)),
                                 onPressed: () {
-                                  // Clipboard functionality
                                 },
                               ),
                             ],
                           ),
                         ],
                       ),
-                      // Positioned Share Button and 3-dot menu
                       Positioned(
                         top: 8,
                         right: 8,
@@ -420,13 +398,11 @@ class _HomePageState extends State<HomePage> {
                             IconButton(
                               icon: Icon(Icons.share, color:Color(0xFF959EB9)),
                               onPressed: () {
-                                // Share functionality
                               },
                             ),
                             IconButton(
                               icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
                               onPressed: () {
-                                // 3-dot menu functionality
                               },
                             ),
                           ],
@@ -444,19 +420,19 @@ class _HomePageState extends State<HomePage> {
   ),
 );
       case 1:
-        containerColor = Color(0xFF090A0E); // Color when 'Following' is selected
+        containerColor = Color(0xFF090A0E); 
         contentText = 'Following Page';
         break;
       case 2:
-        containerColor = Color(0xFF090A0E); // Color when 'Discussions' is selected
+        containerColor = Color(0xFF090A0E); 
         contentText = 'Discussions Page';
         break;
       case 3:
-        containerColor = Color(0xFF090A0E); // Color when 'Tags' is selected
+        containerColor = Color(0xFF090A0E); 
         contentText = 'Tags Page';
         break;
       default:
-        containerColor = Color(0xFF090A0E); // Default color
+        containerColor = Color(0xFF090A0E); 
         contentText = 'Welcome to the app';
         break;
     }

@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'sign_in.dart'; // Import the sign_in.dart file
+import 'sign_in.dart';
 
 class RegisterWithEmailForm extends StatefulWidget {
   const RegisterWithEmailForm({Key? key}) : super(key: key);
@@ -17,7 +17,7 @@ class _RegisterWithEmailFormState extends State<RegisterWithEmailForm> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String _error = '';
   String _successMessage = '';
-  bool _isTermsAccepted = false; // Track if terms are accepted
+  bool _isTermsAccepted = false;
 
   void _registerWithEmailAndPassword() async {
     String email = _emailController.text.trim();
@@ -41,7 +41,6 @@ class _RegisterWithEmailFormState extends State<RegisterWithEmailForm> {
     }
 
     try {
-      // Create user
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -51,7 +50,6 @@ class _RegisterWithEmailFormState extends State<RegisterWithEmailForm> {
       User? user = userCredential.user;
 
       if (user != null) {
-        // Add user to Firestore immediately
         await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
           'username': username,
           'email': email,
@@ -61,10 +59,8 @@ class _RegisterWithEmailFormState extends State<RegisterWithEmailForm> {
           'isDeactivate': false
         });
 
-        // Send email verification
         await user.sendEmailVerification();
 
-        // Optionally update user profile with username
         await user.updateProfile(displayName: username);
 
         setState(() {
@@ -73,7 +69,6 @@ class _RegisterWithEmailFormState extends State<RegisterWithEmailForm> {
           _error = '';
         });
 
-        // Prompt user to check their email
         _showVerificationDialog();
       }
     } catch (e) {
@@ -96,7 +91,7 @@ class _RegisterWithEmailFormState extends State<RegisterWithEmailForm> {
               child: Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _navigateToSignIn(); // Call the function to navigate
+                _navigateToSignIn();
               },
             ),
           ],

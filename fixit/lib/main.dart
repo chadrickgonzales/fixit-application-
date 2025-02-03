@@ -24,13 +24,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check if a user is already signed in using FirebaseAuth.
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
-        // If the snapshot has data, it means the user is signed in.
-       
-          // If there is no user, show the authentication wrapper.
           return const MaterialApp(
             home: Wrapper(),
           );

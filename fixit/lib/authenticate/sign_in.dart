@@ -22,7 +22,6 @@ class _SignInWithEmailState extends State<SignInWithEmail> {
   String email = _emailController.text.trim();
   String password = _passwordController.text.trim();
 
-  // Step 1: Fetch user document from Firestore
   final userDoc = await FirebaseFirestore.instance
       .collection('users')
       .where('email', isEqualTo: email)
@@ -36,20 +35,17 @@ class _SignInWithEmailState extends State<SignInWithEmail> {
     return;
   }
 
-  // Get user data from Firestore
   final userData = userDoc.docs.first.data();
   bool isDeactivated = userData['isDeactivated'] ?? false;
   String deactivationMessage = userData['deactivateMessage'] ?? 'Your account has been deactivated.';
 
-  // Step 2: Check if account is deactivated
   if (isDeactivated) {
     setState(() {
-      error = deactivationMessage; // Use the deactivation message from Firestore
+      error = deactivationMessage; 
     });
     return;
   }
 
-  // Step 3: Sign in with email and password
   User? user = await _auth.signInWithEmailPassword(email, password);
   if (user == null) {
     setState(() {
@@ -58,21 +54,18 @@ class _SignInWithEmailState extends State<SignInWithEmail> {
     return;
   }
 
-  // Step 4: Check if the email is verified
   if (!user.emailVerified) {
     setState(() {
       error = 'Incorrect email or password. or email is not verified';
     });
-    await _auth.signOut(); // Sign out if email is not verified
+    await _auth.signOut();
     return;
   }
 
-  // Step 5: Update isVerified in Firestore
   await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
     'isVerified': true,
   });
 
-  // Step 6: Redirect to MapSample if all checks are satisfied
   Navigator.pushReplacement(
     context,
     MaterialPageRoute(builder: (context) => const HomePage()),
