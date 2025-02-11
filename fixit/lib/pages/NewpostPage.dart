@@ -56,6 +56,11 @@ class _NewPostPageState extends State<NewPostPage> {
         'userId': user.uid,
         'username': user.displayName ?? 'Anonymous',
         'createdAt': Timestamp.now(),
+         'upvotes': 0,
+        'downvotes': 0,
+        'upvotedBy': [],
+        'downvotedBy': [],
+
       };
 
 

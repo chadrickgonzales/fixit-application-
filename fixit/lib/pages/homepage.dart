@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fixit/pages/NewpostPage.dart';
 import 'package:fixit/pages/ShareLinkPage.dart';
@@ -12,6 +13,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+    final TextEditingController _commentController = TextEditingController();
   int _topSelectedIndex = 0;
   int _bottomSelectedIndex = -1;
 
@@ -251,6 +253,241 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+   Future<void> _updateVote(String postId, bool isUpvote) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    DocumentReference postRef = FirebaseFirestore.instance.collection('posts').doc(postId);
+    DocumentSnapshot postSnapshot = await postRef.get();
+
+    if (!postSnapshot.exists) return;
+
+    Map<String, dynamic> postData = postSnapshot.data() as Map<String, dynamic>;
+    List<dynamic> upvotedBy = postData['upvotedBy'] ?? [];
+    List<dynamic> downvotedBy = postData['downvotedBy'] ?? [];
+
+    if (isUpvote) {
+      if (upvotedBy.contains(user.uid)) {
+        upvotedBy.remove(user.uid);
+      } else {
+        upvotedBy.add(user.uid);
+        downvotedBy.remove(user.uid);
+      }
+    } else {
+      if (downvotedBy.contains(user.uid)) {
+        downvotedBy.remove(user.uid);
+      } else {
+        downvotedBy.add(user.uid);
+        upvotedBy.remove(user.uid);
+      }
+    }
+
+    await postRef.update({
+      'upvotedBy': upvotedBy,
+      'downvotedBy': downvotedBy,
+      'upvotes': upvotedBy.length,
+      'downvotes': downvotedBy.length,
+    });
+  }
+void _showComments(String postId) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Color(0xFF1E1E2C),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (context) {
+      return Padding(
+        padding: MediaQuery.of(context).viewInsets,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(height: 10),
+            Text('Comments', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Divider(color: Colors.grey),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('posts')
+                    .doc(postId)
+                    .collection('comments')
+                    .orderBy('createdAt', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+
+                  var comments = snapshot.data!.docs;
+                  User? user = FirebaseAuth.instance.currentUser;
+
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: comments.length,
+                    itemBuilder: (context, index) {
+                      var comment = comments[index];
+                      String commentId = comment.id;
+                      String commentUserId = comment['userId'];
+                      String username = comment['username'];
+                      String text = comment['text'];
+
+                      bool isUserComment = (user?.uid == commentUserId); // Check if logged-in user owns this comment
+
+                      return ListTile(
+                        title: Text(username, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        subtitle: Text(text, style: TextStyle(color: Colors.grey)),
+                        trailing: isUserComment
+                            ? PopupMenuButton<String>(
+                                icon: Icon(Icons.more_vert, color: Colors.white),
+                                onSelected: (value) {
+                                  if (value == 'edit') {
+                                    _editComment(postId, commentId, text);
+                                  } else if (value == 'delete') {
+                                    _deleteComment(postId, commentId);
+                                  }
+                                },
+                                itemBuilder: (context) => [
+                                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                                ],
+                              )
+                            : null, // Only show menu if the user owns the comment
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _commentController,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Write a comment...',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        filled: true,
+                        fillColor: Color(0xFF2A2A3A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.send, color: Colors.blue),
+                    onPressed: () async {
+                      String commentText = _commentController.text.trim();
+                      if (commentText.isNotEmpty) {
+                        User? user = FirebaseAuth.instance.currentUser;
+                        await FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(postId)
+                            .collection('comments')
+                            .add({
+                          'text': commentText,
+                          'username': user?.displayName ?? 'Anonymous',
+                          'userId': user?.uid ?? 'unknown',
+                          'createdAt': Timestamp.now(),
+                        });
+                        _commentController.clear();
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void _editComment(String postId, String commentId, String currentText) {
+  TextEditingController editController = TextEditingController(text: currentText);
+
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Color(0xFF1E1E2C),
+        title: Text('Edit Comment', style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: editController,
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: 'Edit your comment...',
+            hintStyle: TextStyle(color: Colors.grey),
+            filled: true,
+            fillColor: Color(0xFF2A2A3A),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: Text('Save', style: TextStyle(color: Colors.blue)),
+            onPressed: () async {
+              String updatedText = editController.text.trim();
+              if (updatedText.isNotEmpty) {
+                await FirebaseFirestore.instance
+                    .collection('posts')
+                    .doc(postId)
+                    .collection('comments')
+                    .doc(commentId)
+                    .update({'text': updatedText});
+
+                Navigator.pop(context); // Close dialog
+              }
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _deleteComment(String postId, String commentId) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        backgroundColor: Color(0xFF1E1E2C),
+        title: Text('Delete Comment?', style: TextStyle(color: Colors.white)),
+        content: Text('Are you sure you want to delete this comment?', style: TextStyle(color: Colors.grey)),
+        actions: [
+          TextButton(
+            child: Text('Cancel', style: TextStyle(color: Colors.grey)),
+            onPressed: () => Navigator.pop(context),
+          ),
+          TextButton(
+            child: Text('Delete', style: TextStyle(color: Colors.red)),
+            onPressed: () async {
+              await FirebaseFirestore.instance
+                  .collection('posts')
+                  .doc(postId)
+                  .collection('comments')
+                  .doc(commentId)
+                  .delete();
+
+              Navigator.pop(context); // Close dialog
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
   Widget _buildTopNavBarItem(String label, int index) {
     return GestureDetector(
       onTap: () {
@@ -301,16 +538,17 @@ class _HomePageState extends State<HomePage> {
               itemCount: posts.length,
               itemBuilder: (context, index) {
                 var post = posts[index];
+                var postId = post.id;
                 var username = post['username'];
                 var title = post['title'];
                 var imageUrl = post['imageUrl'];
+                  int upvotes = post['upvotes'] ?? 0;
+              int downvotes = post['downvotes'] ?? 0;
 
-
-                int upvotes = 120;
-                int downvotes = 35;
-                int comments = 15;
-
-               
+                return StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection('posts').doc(postId).collection('comments').snapshots(),
+                builder: (context, commentSnapshot) {
+                  int commentCount = commentSnapshot.hasData ? commentSnapshot.data!.docs.length : 0;
 
                 return Container(
                    width: double.infinity,
@@ -349,31 +587,29 @@ class _HomePageState extends State<HomePage> {
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.arrow_upward, color: Color(0xFF959EB9)),
-                                    onPressed: () {
-                                    },
-                                  ),
-                                  Text('$upvotes', style: TextStyle(color: Color(0xFF959EB9))),
+                          icon: Icon(Icons.arrow_upward, color: Color(0xFF959EB9)),
+                          onPressed: () => _updateVote(postId, true),
+                        ),
+                        Text('$upvotes', style: TextStyle(color: Color(0xFF959EB9))),
                                 ],
                               ),
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: Icon(Icons.arrow_downward, color: Color(0xFF959EB9)),
-                                    onPressed: () {
-                                    },
-                                  ),
-                                  Text('$downvotes', style: TextStyle(color: Color(0xFF959EB9))),
+                          icon: Icon(Icons.arrow_downward, color: Color(0xFF959EB9)),
+                          onPressed: () => _updateVote(postId, false),
+                        ),
+                        Text('$downvotes', style: TextStyle(color: Color(0xFF959EB9))),
                                 ],
                               ),
                               Row(
                                 children: [
-                                  IconButton(
-                                    icon: Icon(Icons.comment, color: Color(0xFF959EB9)),
-                                    onPressed: () {
-                                    },
-                                  ),
-                                  Text('$comments', style: TextStyle(color: Color(0xFF959EB9))),
+                                    IconButton(
+                              icon: Icon(Icons.comment, color: Color(0xFF959EB9)),
+                              onPressed: () => _showComments(postId),
+                            ),
+                            Text('$commentCount', style: TextStyle(color: Color(0xFF959EB9))), // Display comment count
+                                  
                                 ],
                               ),
                               IconButton(
@@ -410,6 +646,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
+                );
+                },
                 );
               },
             );
