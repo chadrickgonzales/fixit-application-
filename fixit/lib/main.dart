@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-import 'package:fixit/pages/postinfo.dart';
+import 'package:fixit/pages/PostDetailsPage.dart';
 import 'package:fixit/wrapper.dart';
 import 'package:flutter/material.dart';
 
@@ -17,26 +17,26 @@ void main() async {
     ),
   );
 
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
-class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
+class MyApp extends StatefulWidget {
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
   @override
   void initState() {
     super.initState();
     _initDynamicLinks();
   }
 
+  /// Initializes Firebase Dynamic Links
   void _initDynamicLinks() async {
+    // Listen for foreground dynamic link clicks
     FirebaseDynamicLinks.instance.onLink.listen((PendingDynamicLinkData? dynamicLinkData) {
       if (dynamicLinkData?.link != null) {
         _handleDeepLink(dynamicLinkData!.link);
@@ -45,22 +45,37 @@ class _MyAppState extends State<MyApp> {
       print("Error handling dynamic link: $error");
     });
 
+    // Handle dynamic links when the app is launched from a link
     final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks.instance.getInitialLink();
     if (initialLink?.link != null) {
       _handleDeepLink(initialLink!.link);
     }
   }
 
- void _handleDeepLink(Uri deepLink) {
-  print("Deep link received: ${deepLink.toString()}");
+  /// Handles navigation when a deep link is received
+  void _handleDeepLink(Uri deepLink) {
+    print("Deep link received: ${deepLink.toString()}");
 
-  String? postId = deepLink.queryParameters['id'];
-  if (postId != null && postId.isNotEmpty) {
-    navigatorKey.currentState?.pushNamed('/post', arguments: postId);
-  } else {
-    print("Error: postId is null or empty");
+    // Extract postId from the query parameters
+    if (deepLink.queryParameters.containsKey('id')) {
+      String postId = deepLink.queryParameters['id']!;
+      print("Navigating to PostDetailsPage with postId: $postId");
+
+      navigatorKey.currentState?.pushNamed(
+        '/postDetails',
+        arguments: {
+          'postId': postId,
+          'username': '',
+          'title': '',
+          'imageUrl': '',
+          'upvotes': 0,
+          'downvotes': 0,
+        },
+      );
+    } else {
+      print("Error: postId is null or empty");
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -69,24 +84,26 @@ class _MyAppState extends State<MyApp> {
       builder: (context, snapshot) {
         return MaterialApp(
           navigatorKey: navigatorKey,
-          routes: {
-            '/post': (context) => PostScreen1(),
+          onGenerateRoute: (settings) {
+            if (settings.name == '/postDetails') {
+              final args = settings.arguments as Map<String, dynamic>;
+              return MaterialPageRoute(
+                builder: (context) => PostDetailsPage(
+                  postId: args['postId'],
+                  username: args['username'] ?? '',
+                  title: args['title'] ?? '',
+                  content: args['content'] ?? '',
+                  imageUrl: args['imageUrl'] ?? '',
+                  upvotes: args['upvotes'] ?? 0,
+                  downvotes: args['downvotes'] ?? 0,
+                ),
+              );
+            }
+            return MaterialPageRoute(builder: (context) => Wrapper());
           },
           home: Wrapper(),
         );
       },
-    );
-  }
-}
-
-class PostScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final String postId = ModalRoute.of(context)!.settings.arguments as String;
-
-    return Scaffold(
-      appBar: AppBar(title: Text('Post Details')),
-      body: Center(child: Text('Showing post: $postId')),
     );
   }
 }

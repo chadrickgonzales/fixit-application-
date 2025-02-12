@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fixit/pages/NewpostPage.dart';
+import 'package:fixit/pages/PostDetailsPage.dart';
 import 'package:fixit/pages/ShareLinkPage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -488,6 +489,7 @@ void _savePost(String postId) {
                 var postId = post.id;
                 var username = post['username'];
                 var title = post['title'];
+                var content = post['content'];  
                 var imageUrl = post['imageUrl'];
                 int upvotes = post['upvotes'] ?? 0;
                 int downvotes = post['downvotes'] ?? 0;
@@ -501,8 +503,25 @@ void _savePost(String postId) {
                   builder: (context, commentSnapshot) {
                     int commentCount =
                         commentSnapshot.hasData ? commentSnapshot.data!.docs.length : 0;
+                         return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PostDetailsPage(
+                                  postId: postId,         // Add this line to pass postId
+                                  username: username,
+                                  title: title,
+                                  content: content,
+                                  imageUrl: imageUrl,
+                                  upvotes: upvotes,
+                                  downvotes: downvotes,
+                                ),
+                              ),
+                            );
+                          },
 
-                    return Container(
+                    child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.all(16),
                       margin: EdgeInsets.only(bottom: 16),
@@ -603,6 +622,7 @@ void _savePost(String postId) {
                           if (_selectedPostId == postId) _buildCommentsSection(postId),
                         ],
                       ),
+                    ),
                     );
                   },
                 );
