@@ -17,7 +17,9 @@ dependencies:
   cloud_firestore: ^5.0.2
   image_picker: ^1.1.2
   firebase_storage: ^12.4.1
-
+  share_plus: ^10.1.4
+  fluttertoast: ^8.2.4
+  firebase_dynamic_links: ^6.1.2 # Check for the latest version
 
 dev_dependencies:
   flutter_test:

@@ -1,9 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fixit/pages/NewpostPage.dart';
 import 'package:fixit/pages/ShareLinkPage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:share_plus/share_plus.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -13,9 +17,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-    final TextEditingController _commentController = TextEditingController();
+  String? _selectedPostId;
+  final TextEditingController _commentController = TextEditingController();
   int _topSelectedIndex = 0;
   int _bottomSelectedIndex = -1;
+  List<String> hiddenPosts = [];
 
   @override
   Widget build(BuildContext context) {
@@ -289,123 +295,7 @@ class _HomePageState extends State<HomePage> {
       'downvotes': downvotedBy.length,
     });
   }
-void _showComments(String postId) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Color(0xFF1E1E2C),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (context) {
-      return Padding(
-        padding: MediaQuery.of(context).viewInsets,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: 10),
-            Text('Comments', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-            Divider(color: Colors.grey),
-            Expanded(
-              child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('posts')
-                    .doc(postId)
-                    .collection('comments')
-                    .orderBy('createdAt', descending: true)
-                    .snapshots(),
-                builder: (context, snapshot) {
-                  if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
 
-                  var comments = snapshot.data!.docs;
-                  User? user = FirebaseAuth.instance.currentUser;
-
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: comments.length,
-                    itemBuilder: (context, index) {
-                      var comment = comments[index];
-                      String commentId = comment.id;
-                      String commentUserId = comment['userId'];
-                      String username = comment['username'];
-                      String text = comment['text'];
-
-                      bool isUserComment = (user?.uid == commentUserId); // Check if logged-in user owns this comment
-
-                      return ListTile(
-                        title: Text(username, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                        subtitle: Text(text, style: TextStyle(color: Colors.grey)),
-                        trailing: isUserComment
-                            ? PopupMenuButton<String>(
-                                icon: Icon(Icons.more_vert, color: Colors.white),
-                                onSelected: (value) {
-                                  if (value == 'edit') {
-                                    _editComment(postId, commentId, text);
-                                  } else if (value == 'delete') {
-                                    _deleteComment(postId, commentId);
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                                  PopupMenuItem(value: 'delete', child: Text('Delete')),
-                                ],
-                              )
-                            : null, // Only show menu if the user owns the comment
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      style: TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        hintText: 'Write a comment...',
-                        hintStyle: TextStyle(color: Colors.grey),
-                        filled: true,
-                        fillColor: Color(0xFF2A2A3A),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    icon: Icon(Icons.send, color: Colors.blue),
-                    onPressed: () async {
-                      String commentText = _commentController.text.trim();
-                      if (commentText.isNotEmpty) {
-                        User? user = FirebaseAuth.instance.currentUser;
-                        await FirebaseFirestore.instance
-                            .collection('posts')
-                            .doc(postId)
-                            .collection('comments')
-                            .add({
-                          'text': commentText,
-                          'username': user?.displayName ?? 'Anonymous',
-                          'userId': user?.uid ?? 'unknown',
-                          'createdAt': Timestamp.now(),
-                        });
-                        _commentController.clear();
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
 
 void _editComment(String postId, String commentId, String currentText) {
   TextEditingController editController = TextEditingController(text: currentText);
@@ -447,7 +337,7 @@ void _editComment(String postId, String commentId, String currentText) {
                     .doc(commentId)
                     .update({'text': updatedText});
 
-                Navigator.pop(context); // Close dialog
+                Navigator.pop(context); 
               }
             },
           ),
@@ -480,13 +370,70 @@ void _deleteComment(String postId, String commentId) {
                   .doc(commentId)
                   .delete();
 
-              Navigator.pop(context); // Close dialog
+              Navigator.pop(context); 
             },
           ),
         ],
       );
     },
   );
+}
+void _sharePost(String postId, String title, String imageUrl) async {
+  try {
+    String link = await _createDynamicLink(postId);
+    String message = 'Check out this post: $title\n$link';
+    Share.share(message);
+  } catch (e) {
+    print("Error creating dynamic link: $e");
+  }
+}
+
+Future<String> _createDynamicLink(String postId) async {
+  final DynamicLinkParameters dynamicLinkParams = DynamicLinkParameters(
+    uriPrefix: "https://chadrick.page.link",
+   link: Uri.parse("https://example.com/post?id=$postId"),
+    androidParameters: AndroidParameters(
+      packageName: "com.example.fixit", 
+      minimumVersion: 0,
+    ),
+    iosParameters: IOSParameters(
+      bundleId: "com.example.fixit",
+      minimumVersion: "1.0.0",
+    ),
+  );
+
+  final ShortDynamicLink shortLink =
+      await FirebaseDynamicLinks.instance.buildShortLink(dynamicLinkParams);
+  
+  print("Generated Dynamic Link: ${shortLink.shortUrl}");
+  return shortLink.shortUrl.toString();
+}
+
+void _reportPost(String postId) {
+  FirebaseFirestore.instance.collection('reports').add({
+    'postId': postId,
+    'reportedAt': Timestamp.now(),
+  });
+  Fluttertoast.showToast(msg: 'Post reported successfully');
+}
+
+void _hidePost(String postId) {
+  setState(() {
+    hiddenPosts.add(postId);
+  });
+}
+
+void _copyPost(String title, String imageUrl) {
+  Clipboard.setData(ClipboardData(text: 'Check out this post: $title\n$imageUrl'));
+  Fluttertoast.showToast(msg: 'Post copied to clipboard');
+}
+
+void _savePost(String postId) {
+  FirebaseFirestore.instance.collection('saved_posts').add({
+    'postId': postId,
+    'savedAt': Timestamp.now(),
+  });
+  Fluttertoast.showToast(msg: 'Post saved successfully');
 }
   Widget _buildTopNavBarItem(String label, int index) {
     return GestureDetector(
@@ -520,7 +467,7 @@ void _deleteComment(String postId, String commentId) {
       case 0:
         containerColor = Color(0xFF090A0E); 
         contentText = 'You Page';
-       return Expanded(
+      return Expanded(
   child: SingleChildScrollView(
     child: Column(
       children: [
@@ -542,36 +489,70 @@ void _deleteComment(String postId, String commentId) {
                 var username = post['username'];
                 var title = post['title'];
                 var imageUrl = post['imageUrl'];
-                  int upvotes = post['upvotes'] ?? 0;
-              int downvotes = post['downvotes'] ?? 0;
+                int upvotes = post['upvotes'] ?? 0;
+                int downvotes = post['downvotes'] ?? 0;
 
                 return StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('posts').doc(postId).collection('comments').snapshots(),
-                builder: (context, commentSnapshot) {
-                  int commentCount = commentSnapshot.hasData ? commentSnapshot.data!.docs.length : 0;
+                  stream: FirebaseFirestore.instance
+                      .collection('posts')
+                      .doc(postId)
+                      .collection('comments')
+                      .snapshots(),
+                  builder: (context, commentSnapshot) {
+                    int commentCount =
+                        commentSnapshot.hasData ? commentSnapshot.data!.docs.length : 0;
 
-                return Container(
-                   width: double.infinity,
-                  padding: EdgeInsets.all(16),
-                  margin: EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF090A0E),
-                    borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                      color:Color.fromARGB(57, 149, 158, 185), 
-                      width: 1, 
-    )                 ,
-                  ),
-                  child: Stack(
-                    children: [
-                      Column(
+                    return Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      margin: EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Color(0xFF090A0E),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Color.fromARGB(57, 149, 158, 185), width: 1),
+                      ),
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(username, style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF959EB9))),
+                          // Row for Username, Share Button, and 3-dot Menu
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(username,
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold, color: Color(0xFF959EB9))),
+
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: Icon(Icons.share, color: Color(0xFF959EB9)),
+                                    onPressed: () {
+                                      _sharePost( postId, title, imageUrl);
+                                    },
+                                  ),
+                                  PopupMenuButton<String>(
+                                    icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
+                                    onSelected: (value) {
+                                      if (value == 'report') {
+                                        _reportPost(postId);
+                                      } else if (value == 'hide') {
+                                        _hidePost(postId);
+                                      }
+                                    },
+                                    itemBuilder: (context) => [
+                                      PopupMenuItem(value: 'report', child: Text('Report')),
+                                      PopupMenuItem(value: 'hide', child: Text('Hide Post')),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                           SizedBox(height: 8),
                           Text(
                             title,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF959EB9)),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF959EB9)),
                           ),
                           SizedBox(height: 8),
                           Image.network(
@@ -581,73 +562,49 @@ void _deleteComment(String postId, String commentId) {
                             fit: BoxFit.cover,
                           ),
                           SizedBox(height: 8),
+
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Row(
-                                children: [
-                                  IconButton(
-                          icon: Icon(Icons.arrow_upward, color: Color(0xFF959EB9)),
-                          onPressed: () => _updateVote(postId, true),
-                        ),
-                        Text('$upvotes', style: TextStyle(color: Color(0xFF959EB9))),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                  IconButton(
-                          icon: Icon(Icons.arrow_downward, color: Color(0xFF959EB9)),
-                          onPressed: () => _updateVote(postId, false),
-                        ),
-                        Text('$downvotes', style: TextStyle(color: Color(0xFF959EB9))),
-                                ],
-                              ),
-                              Row(
-                                children: [
-                                    IconButton(
-                              icon: Icon(Icons.comment, color: Color(0xFF959EB9)),
-                              onPressed: () => _showComments(postId),
-                            ),
-                            Text('$commentCount', style: TextStyle(color: Color(0xFF959EB9))), // Display comment count
-                                  
-                                ],
-                              ),
                               IconButton(
-                                icon: Icon(Icons.bookmark, color:Color(0xFF959EB9)),
+                                icon: Icon(Icons.arrow_upward, color: Color(0xFF959EB9)),
+                                onPressed: () => _updateVote(postId, true),
+                              ),
+                              Text('$upvotes', style: TextStyle(color: Color(0xFF959EB9))),
+                              IconButton(
+                                icon: Icon(Icons.arrow_downward, color: Color(0xFF959EB9)),
+                                onPressed: () => _updateVote(postId, false),
+                              ),
+                              Text('$downvotes', style: TextStyle(color: Color(0xFF959EB9))),
+                              IconButton(
+                                icon: Icon(Icons.comment, color: Color(0xFF959EB9)),
                                 onPressed: () {
+                                  setState(() {
+                                    _selectedPostId = (_selectedPostId == postId) ? null : postId;
+                                  });
+                                },
+                              ),
+                              Text('$commentCount', style: TextStyle(color: Color(0xFF959EB9))),
+                              IconButton(
+                                icon: Icon(Icons.bookmark, color: Color(0xFF959EB9)),
+                                onPressed: () {
+                                  _savePost(postId);
                                 },
                               ),
                               IconButton(
-                                icon: Icon(Icons.content_copy, color:Color(0xFF959EB9)),
+                                icon: Icon(Icons.content_copy, color: Color(0xFF959EB9)),
                                 onPressed: () {
+                                  _copyPost(title, imageUrl);
                                 },
                               ),
                             ],
                           ),
+
+                          // Show comment section if this post is selected
+                          if (_selectedPostId == postId) _buildCommentsSection(postId),
                         ],
                       ),
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.share, color:Color(0xFF959EB9)),
-                              onPressed: () {
-                              },
-                            ),
-                            IconButton(
-                              icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
-                              onPressed: () {
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-                },
+                    );
+                  },
                 );
               },
             );
@@ -678,4 +635,109 @@ void _deleteComment(String postId, String commentId) {
       child: Text(contentText, style: TextStyle(color: Colors.white, fontSize: 24)),
     );
   }
+
+  Widget _buildCommentsSection(String postId) {
+  return Column(
+    children: [
+      Container(
+        constraints: BoxConstraints(maxHeight: 250), // Set max height for scrolling
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('posts')
+              .doc(postId)
+              .collection('comments')
+              .orderBy('createdAt', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
+
+            var comments = snapshot.data!.docs;
+            User? user = FirebaseAuth.instance.currentUser;
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: BouncingScrollPhysics(),
+              itemCount: comments.length,
+              itemBuilder: (context, index) {
+                var comment = comments[index];
+                String commentId = comment.id;
+                String commentUserId = comment['userId'];
+                String username = comment['username'];
+                String text = comment['text'];
+
+                bool isUserComment = (user?.uid == commentUserId);
+
+                return ListTile(
+                  title: Text(username, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  subtitle: Text(text, style: TextStyle(color: Colors.grey)),
+                  trailing: isUserComment
+                      ? PopupMenuButton<String>(
+                          icon: Icon(Icons.more_vert, color: Colors.white),
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              _editComment(postId, commentId, text);
+                            } else if (value == 'delete') {
+                              _deleteComment(postId, commentId);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            PopupMenuItem(value: 'edit', child: Text('Edit')),
+                            PopupMenuItem(value: 'delete', child: Text('Delete')),
+                          ],
+                        )
+                      : null,
+                );
+              },
+            );
+          },
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _commentController,
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Write a comment...',
+                  hintStyle: TextStyle(color: Colors.grey),
+                  filled: true,
+                  fillColor: Color(0xFF2A2A3A),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.send, color: Colors.blue),
+              onPressed: () async {
+                String commentText = _commentController.text.trim();
+                if (commentText.isNotEmpty) {
+                  User? user = FirebaseAuth.instance.currentUser;
+                  await FirebaseFirestore.instance
+                      .collection('posts')
+                      .doc(postId)
+                      .collection('comments')
+                      .add({
+                    'text': commentText,
+                    'username': user?.displayName ?? 'Anonymous',
+                    'userId': user?.uid ?? 'unknown',
+                    'createdAt': Timestamp.now(),
+                  });
+                  _commentController.clear();
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+
 }
