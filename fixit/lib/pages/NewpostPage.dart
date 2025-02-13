@@ -109,9 +109,10 @@ Widget build(BuildContext context) {
                 ),
                 ElevatedButton(
                   onPressed: _uploadPost,
-                  child: Text("Post"),
+                  child: Text("Post",
+                  style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0))),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF4CAF50),
+                    backgroundColor: Color(0xFF959EB9),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20)),
                     padding:

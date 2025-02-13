@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
                       borderRadius: BorderRadius.circular(35),
                       border: Border.all(
                         color: Color(0xFF959EB9),
-                        width: 2,
+                        width: 1,
                       ),
                     ),
                     child: IconButton(
@@ -195,7 +195,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(35),
                 border: Border.all(
                   color: Color(0xFF959EB9),
-                  width: 3, 
+                  width: 1, 
                 ),
               ),
               child: IconButton(
@@ -216,51 +216,87 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-  void _showBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => NewPostPage()),
-                      );
-                    },
-                    child: Text('New Post'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ShareLinkPage()),
-                      );
-                    },
-                    child: Text('Share a Link'),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context); 
-                },
-                child: Text('Close'),
-              ),
-            ],
+void _showBottomSheet(BuildContext context) {
+  showModalBottomSheet(
+    backgroundColor: Colors.transparent, 
+    context: context,
+    isScrollControlled: true,
+    builder: (context) {
+      return Container(
+       decoration: BoxDecoration(
+          color: const Color(0xFF010409), 
+          borderRadius: BorderRadius.vertical(top: Radius.circular(40.0)),
+          border: Border(
+            top: BorderSide(color: Color(0xFF959EB9), width: 3.0),   
+            left: BorderSide(color: Color(0xFF959EB9), width: 3.0),  
+            right: BorderSide(color: Color(0xFF959EB9), width: 3.0), 
+           
           ),
-        );
-      },
-    );
-  }
+        ),
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF959EB9),
+                    foregroundColor: Colors.white, 
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      side: BorderSide(color: Colors.white, width: 0.5), 
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => NewPostPage()),
+                    );
+                  },
+                  child: Text('New Post'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF959EB9), // Button color
+                    foregroundColor: Colors.white, // Text color
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20.0),
+                      side: BorderSide(color: Colors.white, width: .5), // White border
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => ShareLinkPage()),
+                    );
+                  },
+                  child: Text('Share a Link'),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, // Button color
+                foregroundColor: Colors.white, // Text color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  side: BorderSide(color: Colors.white, width: 0.5), // White border
+                ),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Close'),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
 
    Future<void> _updateVote(String postId, bool isUpvote) async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -525,7 +561,7 @@ void _savePost(String postId) {
 
                     child: Container(
                       width: double.infinity,
-                      padding: EdgeInsets.all(16),
+                      padding: EdgeInsets.only(top: 16, bottom: 16),
                       margin: EdgeInsets.only(bottom: 16),
                       decoration: BoxDecoration(
                         color: Color(0xFF090A0E),
@@ -536,49 +572,75 @@ void _savePost(String postId) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Row for Username, Share Button, and 3-dot Menu
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(username,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold, color: Color(0xFF959EB9))),
-
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: Icon(Icons.share, color: Color(0xFF959EB9)),
-                                    onPressed: () {
-                                      _sharePost( postId, title, imageUrl);
-                                    },
-                                  ),
-                                  PopupMenuButton<String>(
-                                    icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
-                                    onSelected: (value) {
-                                      if (value == 'report') {
-                                        _reportPost(postId);
-                                      } else if (value == 'hide') {
-                                        _hidePost(postId);
-                                      }
-                                    },
-                                    itemBuilder: (context) => [
-                                      PopupMenuItem(value: 'report', child: Text('Report')),
-                                      PopupMenuItem(value: 'hide', child: Text('Hide Post')),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                        Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Container(
+                                          margin: EdgeInsets.only(left: 10),  // Adds left margin
+                                          child: CircleAvatar(
+                                            radius: 20,  // Adjust size as needed
+                                            backgroundColor: Colors.grey[300],  // Placeholder background color
+                                            child: Icon(
+                                              Icons.person,  // Placeholder icon
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(width: 10),  // Spacing between avatar and username
+                                        Text(
+                                          username,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold, 
+                                            fontSize: 15, 
+                                            color: Color.fromARGB(255, 255, 255, 255),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(Icons.share, color: Color(0xFF959EB9)),
+                                          onPressed: () {
+                                            _sharePost(postId, title, imageUrl);
+                                          },
+                                        ),
+                                        PopupMenuButton<String>(
+                                          icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
+                                          onSelected: (value) {
+                                            if (value == 'report') {
+                                              _reportPost(postId);
+                                            } else if (value == 'hide') {
+                                              _hidePost(postId);
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(value: 'report', child: Text('Report')),
+                                            PopupMenuItem(value: 'hide', child: Text('Hide Post')),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                           SizedBox(height: 8),
-                          Text(
-                            title,
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF959EB9)),
-                          ),
+                        Container(
+                            margin: EdgeInsets.only(left: 10),  // Adds right margin
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 24, 
+                                color: Color.fromARGB(255, 255, 255, 255),
+                              ),
+                            ),
+                          ),  
                           SizedBox(height: 8),
                           Image.network(
                             imageUrl,
-                            width: 400,
+                            width: double.infinity,
                             height: 200,
                             fit: BoxFit.cover,
                           ),
@@ -686,28 +748,64 @@ void _savePost(String postId) {
                 String commentUserId = comment['userId'];
                 String username = comment['username'];
                 String text = comment['text'];
-
                 bool isUserComment = (user?.uid == commentUserId);
 
-                return ListTile(
-                  title: Text(username, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text(text, style: TextStyle(color: Colors.grey)),
-                  trailing: isUserComment
-                      ? PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert, color: Colors.white),
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _editComment(postId, commentId, text);
-                            } else if (value == 'delete') {
-                              _deleteComment(postId, commentId);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            PopupMenuItem(value: 'delete', child: Text('Delete')),
-                          ],
-                        )
-                      : null,
+                return FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(commentUserId)
+                      .get(),
+                  builder: (context, snapshot) {
+                    String profileImageUrl = '';
+
+                    if (snapshot.hasData && snapshot.data!.exists) {
+                      var userData = snapshot.data!.data() as Map<String, dynamic>;
+                      profileImageUrl = userData['profileImageUrl'] ?? '';
+                    }
+
+                    return ListTile(
+                      leading: Container(
+                        margin: EdgeInsets.only(left: 10),  // Margin for left spacing
+                        child: CircleAvatar(
+                          radius: 20,  // Adjust size as needed
+                          backgroundImage: profileImageUrl.isNotEmpty
+                              ? NetworkImage(profileImageUrl)
+                              : null,
+                          backgroundColor: Colors.grey[300],  // Placeholder background color
+                          child: profileImageUrl.isEmpty
+                              ? Icon(Icons.person, color: Colors.white)  // Placeholder icon
+                              : null,
+                        ),
+                      ),
+                      title: Text(
+                        username,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        text,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      trailing: isUserComment
+                          ? PopupMenuButton<String>(
+                              icon: Icon(Icons.more_vert, color: Colors.white),
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  _editComment(postId, commentId, text);
+                                } else if (value == 'delete') {
+                                  _deleteComment(postId, commentId);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                PopupMenuItem(value: 'delete', child: Text('Delete')),
+                              ],
+                            )
+                          : null,
+                    );
+                  },
                 );
               },
             );
@@ -760,6 +858,4 @@ void _savePost(String postId) {
     ],
   );
 }
-
-
 }

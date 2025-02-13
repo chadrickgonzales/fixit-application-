@@ -246,7 +246,7 @@ void _deleteComment(String postId, String commentId) {
     body: SingleChildScrollView(
       child: Container(
         width: double.infinity, // Full width of the screen // Outer margin for spacing
-        padding: EdgeInsets.all(16), // Inner padding for spacing
+        padding: EdgeInsets.only(top: 16, bottom: 16), // Inner padding for spacing
         decoration: BoxDecoration(
           color: Color(0xFF010409), // Background color for the content area
           borderRadius: BorderRadius.circular(12), // Rounded corners
@@ -258,9 +258,20 @@ void _deleteComment(String postId, String commentId) {
            
             // Actions Row at the top
            Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
   children: [
     // Username on the left
+     Container(
+      margin: EdgeInsets.only(left: 10),  // Adds left margin
+      child: CircleAvatar(
+      radius: 20,  // Adjust size as needed
+      backgroundColor: Colors.grey[300],  // Placeholder background color
+      child: Icon(
+      Icons.person,  // Placeholder icon
+      color: Colors.white,
+      ),
+      ),
+      ),
+        SizedBox(width: 8),
     Text(
       widget.username,
       style: TextStyle(
@@ -270,7 +281,7 @@ void _deleteComment(String postId, String commentId) {
       ),
     ),
     
-    // Icons on the right
+     SizedBox(width: 155),// Icons on the right
     Row(
       children: [
         IconButton(
@@ -301,14 +312,17 @@ void _deleteComment(String postId, String commentId) {
     ),
   ],
 ),
-            Text(
-              widget.title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: Color.fromARGB(255, 255, 255, 255),
-              ),
-            ),
+            Container(
+                            margin: EdgeInsets.only(left: 10),  // Adds right margin
+                            child: Text(
+                              widget.title,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 30, 
+                                color: Color.fromARGB(255, 255, 255, 255),
+                              ),
+                            ),
+                          ),  
             SizedBox(height: 16),
             Image.network(
               widget.imageUrl,
@@ -325,8 +339,8 @@ void _deleteComment(String postId, String commentId) {
                     widget.content,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      fontSize: 18,
+                      color: Color.fromARGB(255, 230, 229, 229),
                     ),
                   ),
                   SizedBox(height: 12),
@@ -422,28 +436,64 @@ void _deleteComment(String postId, String commentId) {
                 String commentUserId = comment['userId'];
                 String username = comment['username'];
                 String text = comment['text'];
-
                 bool isUserComment = (user?.uid == commentUserId);
 
-                return ListTile(
-                  title: Text(username, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  subtitle: Text(text, style: TextStyle(color: Colors.grey)),
-                  trailing: isUserComment
-                      ? PopupMenuButton<String>(
-                          icon: Icon(Icons.more_vert, color: Colors.white),
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              _editComment(postId, commentId, text);
-                            } else if (value == 'delete') {
-                              _deleteComment(postId, commentId);
-                            }
-                          },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(value: 'edit', child: Text('Edit')),
-                            PopupMenuItem(value: 'delete', child: Text('Delete')),
-                          ],
-                        )
-                      : null,
+                return FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(commentUserId)
+                      .get(),
+                  builder: (context, snapshot) {
+                    String profileImageUrl = '';
+
+                    if (snapshot.hasData && snapshot.data!.exists) {
+                      var userData = snapshot.data!.data() as Map<String, dynamic>;
+                      profileImageUrl = userData['profileImageUrl'] ?? '';
+                    }
+
+                    return ListTile(
+                      leading: Container(
+                        margin: EdgeInsets.only(left: 10),  // Margin for left spacing
+                        child: CircleAvatar(
+                          radius: 20,  // Adjust size as needed
+                          backgroundImage: profileImageUrl.isNotEmpty
+                              ? NetworkImage(profileImageUrl)
+                              : null,
+                          backgroundColor: Colors.grey[300],  // Placeholder background color
+                          child: profileImageUrl.isEmpty
+                              ? Icon(Icons.person, color: Colors.white)  // Placeholder icon
+                              : null,
+                        ),
+                      ),
+                      title: Text(
+                        username,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      subtitle: Text(
+                        text,
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      trailing: isUserComment
+                          ? PopupMenuButton<String>(
+                              icon: Icon(Icons.more_vert, color: Colors.white),
+                              onSelected: (value) {
+                                if (value == 'edit') {
+                                  _editComment(postId, commentId, text);
+                                } else if (value == 'delete') {
+                                  _deleteComment(postId, commentId);
+                                }
+                              },
+                              itemBuilder: (context) => [
+                                PopupMenuItem(value: 'edit', child: Text('Edit')),
+                                PopupMenuItem(value: 'delete', child: Text('Delete')),
+                              ],
+                            )
+                          : null,
+                    );
+                  },
                 );
               },
             );
