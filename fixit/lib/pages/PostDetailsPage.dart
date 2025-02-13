@@ -235,69 +235,93 @@ void _deleteComment(String postId, String commentId) {
   
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      
-     appBar: AppBar(
-  title: Text(widget.username),
+ Widget build(BuildContext context) {
+  return Scaffold(
+   appBar: AppBar(
   backgroundColor: Color(0xFF090A0E),
-  actions: [
-    IconButton(
-      icon: Icon(Icons.share, color: Color(0xFF959EB9)),
-      onPressed: () => _sharePost(widget.postId, widget.title, widget.content, widget.imageUrl),
-    ),
-    PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
-      onSelected: (value) {
-        if (value == 'bookmark') {
-          _bookmarkPost();
-        } else if (value == 'copy') {
-          _copyPost();
-        }
-      },
-      itemBuilder: (context) => [
-        PopupMenuItem(
-          value: 'bookmark',
-          child: Text(isBookmarked ? 'Remove Bookmark' : 'Bookmark'),
+  iconTheme: IconThemeData(
+    color: Color(0xFF959EB9), // Set the color of the back icon
+  ),
+),
+    body: SingleChildScrollView(
+      child: Container(
+        width: double.infinity, // Full width of the screen // Outer margin for spacing
+        padding: EdgeInsets.all(16), // Inner padding for spacing
+        decoration: BoxDecoration(
+          color: Color(0xFF010409), // Background color for the content area
+          borderRadius: BorderRadius.circular(12), // Rounded corners
+          border: Border.all(color: Color.fromARGB(57, 149, 158, 185), width: 1), // Border color and width
         ),
-        PopupMenuItem(
-          value: 'copy',
-          child: Text('Copy'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+           
+            // Actions Row at the top
+           Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    // Username on the left
+    Text(
+      widget.username,
+      style: TextStyle(
+        fontWeight: FontWeight.bold,
+        fontSize: 24,
+        color: Color.fromARGB(255, 255, 255, 255),
+      ),
+    ),
+    
+    // Icons on the right
+    Row(
+      children: [
+        IconButton(
+          icon: Icon(Icons.share, color: Color(0xFF959EB9)),
+          onPressed: () => _sharePost(widget.postId, widget.title, widget.content, widget.imageUrl),
+        ),
+        PopupMenuButton<String>(
+          icon: Icon(Icons.more_vert, color: Color(0xFF959EB9)),
+          onSelected: (value) {
+            if (value == 'bookmark') {
+              _bookmarkPost();
+            } else if (value == 'copy') {
+              _copyPost();
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'bookmark',
+              child: Text(isBookmarked ? 'Remove Bookmark' : 'Bookmark'),
+            ),
+            PopupMenuItem(
+              value: 'copy',
+              child: Text('Copy'),
+            ),
+          ],
         ),
       ],
     ),
   ],
 ),
-      body: SingleChildScrollView(
-       
-        child: Column(
-          
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
             Text(
-                    widget.title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24,
-                      color: Color.fromARGB(255, 255, 255, 255),
-                    ),
-                  ),
-                  SizedBox(height: 16),
+              widget.title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 24,
+                color: Color.fromARGB(255, 255, 255, 255),
+              ),
+            ),
+            SizedBox(height: 16),
             Image.network(
               widget.imageUrl,
-              width: double.infinity,
-              height: 300,
+              width: 400,
+              height: 200,
               fit: BoxFit.cover,
             ),
             Padding(
               padding: const EdgeInsets.all(16.0),
-              
               child: Column(
-                
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
-                   Text(
+                  Text(
                     widget.content,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -306,8 +330,6 @@ void _deleteComment(String postId, String commentId) {
                     ),
                   ),
                   SizedBox(height: 12),
-
-                  // Row of Icons with Actions
                   Row(
                     children: [
                       IconButton(
@@ -325,25 +347,25 @@ void _deleteComment(String postId, String commentId) {
                       IconButton(
                         icon: Icon(Icons.comment, color: Color(0xFF959EB9)),
                         onPressed: () {
-                  setState(() {
-                    _selectedPostId = (_selectedPostId == widget.postId) ? null : widget.postId;
-                  });
-                },
+                          setState(() {
+                            _selectedPostId = (_selectedPostId == widget.postId) ? null : widget.postId;
+                          });
+                        },
                       ),
-                     StreamBuilder<QuerySnapshot>(
-                          stream: FirebaseFirestore.instance
-                              .collection('posts')
-                              .doc(widget.postId)
-                              .collection('comments')
-                              .snapshots(),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData) {
-                              return Text('0', style: TextStyle(color: Color(0xFF959EB9)));
-                            }
-                            int commentCount = snapshot.data!.docs.length;
-                            return Text('$commentCount', style: TextStyle(color: Color(0xFF959EB9)));
-                          },
-                        ),
+                      StreamBuilder<QuerySnapshot>(
+                        stream: FirebaseFirestore.instance
+                            .collection('posts')
+                            .doc(widget.postId)
+                            .collection('comments')
+                            .snapshots(),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) {
+                            return Text('0', style: TextStyle(color: Color(0xFF959EB9)));
+                          }
+                          int commentCount = snapshot.data!.docs.length;
+                          return Text('$commentCount', style: TextStyle(color: Color(0xFF959EB9)));
+                        },
+                      ),
                       SizedBox(width: 16),
                       IconButton(
                         icon: Icon(
@@ -365,9 +387,10 @@ void _deleteComment(String postId, String commentId) {
           ],
         ),
       ),
-      backgroundColor: Color(0xFF090A0E),
-    );
-  }
+    ),
+    backgroundColor: Color(0xFF090A0E),
+  );
+}
 
 
 

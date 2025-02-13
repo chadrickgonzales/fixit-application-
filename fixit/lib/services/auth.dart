@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:fixit/models/user.dart';
+import 'package:fixit/models/user.dart'; // Assuming User1 model is defined correctly
 
 class AuthService {
   FirebaseAuth get _auth => FirebaseAuth.instanceFor(app: Firebase.app());

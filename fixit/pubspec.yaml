@@ -19,7 +19,7 @@ dependencies:
   firebase_storage: ^12.4.1
   share_plus: ^10.1.4
   fluttertoast: ^8.2.4
-  firebase_dynamic_links: ^6.1.2 # Check for the latest version
+  firebase_dynamic_links: ^6.1.2 
 
 dev_dependencies:
   flutter_test:

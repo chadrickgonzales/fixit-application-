@@ -28,6 +28,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF090A0E),
+       resizeToAvoidBottomInset: false,
       body: Stack(
         children: [
  
@@ -56,6 +57,7 @@ class _HomePageState extends State<HomePage> {
           
 
           Positioned(
+            
             top: 140, 
             left: 0, 
             right: 0, 
