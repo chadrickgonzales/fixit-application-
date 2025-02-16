@@ -46,7 +46,6 @@ class _PostDetailsPageState extends State<PostDetailsPage> {
   
 
   void _checkIfBookmarked() async {
-    // Example check for bookmark status (replace with your user logic)
     var doc = await FirebaseFirestore.instance
         .collection('bookmarks')
         .doc(widget.postId)
@@ -240,33 +239,32 @@ void _deleteComment(String postId, String commentId) {
    appBar: AppBar(
   backgroundColor: Color(0xFF090A0E),
   iconTheme: IconThemeData(
-    color: Color(0xFF959EB9), // Set the color of the back icon
+    color: Color(0xFF959EB9),
   ),
 ),
     body: SingleChildScrollView(
       child: Container(
-        width: double.infinity, // Full width of the screen // Outer margin for spacing
-        padding: EdgeInsets.only(top: 16, bottom: 16), // Inner padding for spacing
+        width: double.infinity, 
+        padding: EdgeInsets.only(top: 16, bottom: 16), 
         decoration: BoxDecoration(
-          color: Color(0xFF010409), // Background color for the content area
-          borderRadius: BorderRadius.circular(12), // Rounded corners
-          border: Border.all(color: Color.fromARGB(57, 149, 158, 185), width: 1), // Border color and width
+          color: Color(0xFF010409), 
+          borderRadius: BorderRadius.circular(12), 
+          border: Border.all(color: Color.fromARGB(57, 149, 158, 185), width: 1), 
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
            
-            // Actions Row at the top
+            
            Row(
   children: [
-    // Username on the left
      Container(
-      margin: EdgeInsets.only(left: 10),  // Adds left margin
+      margin: EdgeInsets.only(left: 10),  
       child: CircleAvatar(
-      radius: 20,  // Adjust size as needed
-      backgroundColor: Colors.grey[300],  // Placeholder background color
+      radius: 20,  
+      backgroundColor: Colors.grey[300],  
       child: Icon(
-      Icons.person,  // Placeholder icon
+      Icons.person,  
       color: Colors.white,
       ),
       ),
@@ -281,7 +279,7 @@ void _deleteComment(String postId, String commentId) {
       ),
     ),
     
-     SizedBox(width: 155),// Icons on the right
+     SizedBox(width: 155),
     Row(
       children: [
         IconButton(
@@ -313,7 +311,7 @@ void _deleteComment(String postId, String commentId) {
   ],
 ),
             Container(
-                            margin: EdgeInsets.only(left: 10),  // Adds right margin
+                            margin: EdgeInsets.only(left: 10),  
                             child: Text(
                               widget.title,
                               style: TextStyle(
@@ -412,7 +410,7 @@ void _deleteComment(String postId, String commentId) {
   return Column(
     children: [
       Container(
-        constraints: BoxConstraints(maxHeight: 250), // Set max height for scrolling
+        constraints: BoxConstraints(maxHeight: 250), 
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('posts')
@@ -453,15 +451,15 @@ void _deleteComment(String postId, String commentId) {
 
                     return ListTile(
                       leading: Container(
-                        margin: EdgeInsets.only(left: 10),  // Margin for left spacing
+                        margin: EdgeInsets.only(left: 10),  
                         child: CircleAvatar(
-                          radius: 20,  // Adjust size as needed
+                          radius: 20,  
                           backgroundImage: profileImageUrl.isNotEmpty
                               ? NetworkImage(profileImageUrl)
                               : null,
-                          backgroundColor: Colors.grey[300],  // Placeholder background color
+                          backgroundColor: Colors.grey[300],  
                           child: profileImageUrl.isEmpty
-                              ? Icon(Icons.person, color: Colors.white)  // Placeholder icon
+                              ? Icon(Icons.person, color: Colors.white)  
                               : null,
                         ),
                       ),

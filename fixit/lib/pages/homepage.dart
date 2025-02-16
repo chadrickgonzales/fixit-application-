@@ -259,11 +259,11 @@ void _showBottomSheet(BuildContext context) {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF959EB9), // Button color
-                    foregroundColor: Colors.white, // Text color
+                    backgroundColor: Color(0xFF959EB9), 
+                    foregroundColor: Colors.white, 
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),
-                      side: BorderSide(color: Colors.white, width: .5), // White border
+                      side: BorderSide(color: Colors.white, width: .5), 
                     ),
                   ),
                   onPressed: () {
@@ -279,11 +279,11 @@ void _showBottomSheet(BuildContext context) {
             SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red, // Button color
-                foregroundColor: Colors.white, // Text color
+                backgroundColor: Colors.red, 
+                foregroundColor: Colors.white, 
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20.0),
-                  side: BorderSide(color: Colors.white, width: 0.5), // White border
+                  side: BorderSide(color: Colors.white, width: 0.5), 
                 ),
               ),
               onPressed: () {
@@ -547,7 +547,7 @@ void _savePost(String postId) {
                               context,
                               MaterialPageRoute(
                                 builder: (context) => PostDetailsPage(
-                                  postId: postId,         // Add this line to pass postId
+                                  postId: postId,         
                                   username: username,
                                   title: title,
                                   content: content,
@@ -571,24 +571,23 @@ void _savePost(String postId) {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Row for Username, Share Button, and 3-dot Menu
                         Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
                                         Container(
-                                          margin: EdgeInsets.only(left: 10),  // Adds left margin
+                                          margin: EdgeInsets.only(left: 10),  
                                           child: CircleAvatar(
-                                            radius: 20,  // Adjust size as needed
-                                            backgroundColor: Colors.grey[300],  // Placeholder background color
+                                            radius: 20,  
+                                            backgroundColor: Colors.grey[300],  
                                             child: Icon(
-                                              Icons.person,  // Placeholder icon
+                                              Icons.person,  
                                               color: Colors.white,
                                             ),
                                           ),
                                         ),
-                                        SizedBox(width: 10),  // Spacing between avatar and username
+                                        SizedBox(width: 10), 
                                         Text(
                                           username,
                                           style: TextStyle(
@@ -627,7 +626,7 @@ void _savePost(String postId) {
                                 ),
                           SizedBox(height: 8),
                         Container(
-                            margin: EdgeInsets.only(left: 10),  // Adds right margin
+                            margin: EdgeInsets.only(left: 10), 
                             child: Text(
                               title,
                               style: TextStyle(
@@ -682,7 +681,6 @@ void _savePost(String postId) {
                             ],
                           ),
 
-                          // Show comment section if this post is selected
                           if (_selectedPostId == postId) _buildCommentsSection(postId),
                         ],
                       ),
@@ -724,7 +722,7 @@ void _savePost(String postId) {
   return Column(
     children: [
       Container(
-        constraints: BoxConstraints(maxHeight: 250), // Set max height for scrolling
+        constraints: BoxConstraints(maxHeight: 250), 
         child: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('posts')
@@ -765,15 +763,15 @@ void _savePost(String postId) {
 
                     return ListTile(
                       leading: Container(
-                        margin: EdgeInsets.only(left: 10),  // Margin for left spacing
+                        margin: EdgeInsets.only(left: 10),  
                         child: CircleAvatar(
-                          radius: 20,  // Adjust size as needed
+                          radius: 20,  
                           backgroundImage: profileImageUrl.isNotEmpty
                               ? NetworkImage(profileImageUrl)
                               : null,
-                          backgroundColor: Colors.grey[300],  // Placeholder background color
+                          backgroundColor: Colors.grey[300],  
                           child: profileImageUrl.isEmpty
-                              ? Icon(Icons.person, color: Colors.white)  // Placeholder icon
+                              ? Icon(Icons.person, color: Colors.white)  
                               : null,
                         ),
                       ),
